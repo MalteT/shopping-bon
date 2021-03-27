@@ -1,9 +1,18 @@
 [package]
-name = "shopping-bon"
-version = "0.1.0"
 authors = ["Malte Tammena <malte.tammena@gmx.de>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+name = "shopping-bon"
+version = "0.1.0"
 
 [dependencies]
+futures = "0.3.13"
+dotenv = "0.15.0"
+
+[dependencies.telegram-bot]
+git = "https://github.com/telegram-rs/telegram-bot"
+version = "0.9.0"
+
+[dependencies.tokio]
+version = "1.2"
+features = ["macros", "rt", "time", "fs"]
+
