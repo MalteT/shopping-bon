@@ -53,7 +53,7 @@ impl CategoryDB {
     pub fn init() -> Self {
         FileDatabase::load_from_path(CATEGORY_DB_PATH)
             .map(CategoryDB)
-            .expect("Failed to initialize item database!")
+            .expect("Failed to initialize category database!")
     }
 
     pub fn read<T, R>(&self, task: T) -> Result<R, DbError>

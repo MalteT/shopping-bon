@@ -1,7 +1,7 @@
 [
     (
         name: "Draußen",
-        icon: '🐕',
+        icon: '☔',
     ),
     (
         name: "Obst & Gemüse",
@@ -13,11 +13,11 @@
     ),
     (
         name: "Veganes",
-        icon: '§',
+        icon: '🌱',
     ),
     (
         name: "Fleischwaren",
-        icon: '§',
+        icon: '🥩',
     ),
     (
         name: "Aufbackwaren",
@@ -25,35 +25,35 @@
     ),
     (
         name: "Käse & Butter",
-        icon: '§',
+        icon: '🧀',
     ),
     (
         name: "Joghurt",
-        icon: '§',
+        icon: '🍮',
     ),
     (
         name: "Kaffee & Tee",
-        icon: '§',
+        icon: '🫖',
     ),
     (
         name: "Milch",
-        icon: '§',
+        icon: '🥛',
     ),
     (
         name: "Magazine, Kerzen & Schreibwaren",
-        icon: '§',
+        icon: '💡',
     ),
     (
         name: "Backartikel",
-        icon: '§',
+        icon: '🧁',
     ),
     (
         name: "Teigwaren",
-        icon: '§',
+        icon: '🧇',
     ),
     (
         name: "Chips",
-        icon: '§',
+        icon: '🍿',
     ),
     (
         name: "Süßwaren",
@@ -69,7 +69,7 @@
     ),
     (
         name: "Suppen",
-        icon: '§',
+        icon: '🥣',
     ),
     (
         name: "Tiernahrung",
@@ -77,15 +77,15 @@
     ),
     (
         name: "Waschmittel",
-        icon: '§',
+        icon: '🧼',
     ),
     (
         name: "Haarpflege",
-        icon: '§',
+        icon: '💆',
     ),
     (
         name: "Kosmetik",
-        icon: '§',
+        icon: '💄',
     ),
     (
         name: "Küchenpapier",
@@ -101,7 +101,7 @@
     ),
     (
         name: "Kassenartikel",
-        icon: '§',
+        icon: '💲',
     ),
     (
         name: "Bäcker",
