@@ -1,11 +1,12 @@
 use rustbreak::{deser::Ron, error::RustbreakError as DbError, FileDatabase};
 use serde::{Deserialize, Serialize};
 
-pub type Items = Vec<String>;
+type Item = String;
+pub type Items = Vec<Item>;
 pub type Categories = Vec<Category>;
 
 const ITEM_DB_PATH: &str = "data/items.ron";
-const CATEGORY_DB_PATH: &str = "data/categorys.ron";
+const CATEGORY_DB_PATH: &str = "data/categories.ron";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Category {
@@ -33,14 +34,24 @@ impl ItemDB {
     where
         T: FnOnce(&mut Items) -> R,
     {
-        self.0.write(task)
+        let res = self.0.write(task)?;
+        self.0.save()?;
+        Ok(res)
+    }
+
+    pub fn add_item(&self, item: Item) -> Result<(), DbError> {
+        self.write(|items| {
+            if !items.contains(&item) {
+                items.push(item)
+            }
+        })
     }
 }
 pub struct CategoryDB(FileDatabase<Categories, Ron>);
 
 impl CategoryDB {
     pub fn init() -> Self {
-        FileDatabase::load_from_path_or(CATEGORY_DB_PATH, default_categories())
+        FileDatabase::load_from_path(CATEGORY_DB_PATH)
             .map(CategoryDB)
             .expect("Failed to initialize item database!")
     }
@@ -56,17 +67,16 @@ impl CategoryDB {
     where
         T: FnOnce(&mut Categories) -> R,
     {
-        self.0.write(task)
+        let res = self.0.write(task)?;
+        self.0.save()?;
+        Ok(res)
     }
-}
 
-fn default_categories() -> Categories {
-    let categories: &[(&'static str, char)] = include!("../data/categories");
-    categories
-        .iter()
-        .map(|(name, icon)| Category {
-            name: name.to_string(),
-            icon: *icon,
+    pub fn add_category(&self, cat: Category) -> Result<(), DbError> {
+        self.write(|cats| {
+            if !cats.contains(&cat) {
+                cats.push(cat)
+            }
         })
-        .collect()
+    }
 }

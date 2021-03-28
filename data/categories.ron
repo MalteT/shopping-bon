@@ -1,0 +1,110 @@
+[
+    (
+        name: "Draußen",
+        icon: '🐕',
+    ),
+    (
+        name: "Obst & Gemüse",
+        icon: '🍎',
+    ),
+    (
+        name: "Nüsse & Müsli",
+        icon: '🥜',
+    ),
+    (
+        name: "Veganes",
+        icon: '§',
+    ),
+    (
+        name: "Fleischwaren",
+        icon: '§',
+    ),
+    (
+        name: "Aufbackwaren",
+        icon: '🥨',
+    ),
+    (
+        name: "Käse & Butter",
+        icon: '§',
+    ),
+    (
+        name: "Joghurt",
+        icon: '§',
+    ),
+    (
+        name: "Kaffee & Tee",
+        icon: '§',
+    ),
+    (
+        name: "Milch",
+        icon: '§',
+    ),
+    (
+        name: "Magazine, Kerzen & Schreibwaren",
+        icon: '§',
+    ),
+    (
+        name: "Backartikel",
+        icon: '§',
+    ),
+    (
+        name: "Teigwaren",
+        icon: '§',
+    ),
+    (
+        name: "Chips",
+        icon: '§',
+    ),
+    (
+        name: "Süßwaren",
+        icon: '🍬',
+    ),
+    (
+        name: "Konserven",
+        icon: '🥫',
+    ),
+    (
+        name: "Feinkost",
+        icon: '§',
+    ),
+    (
+        name: "Suppen",
+        icon: '§',
+    ),
+    (
+        name: "Tiernahrung",
+        icon: '🐈',
+    ),
+    (
+        name: "Waschmittel",
+        icon: '§',
+    ),
+    (
+        name: "Haarpflege",
+        icon: '§',
+    ),
+    (
+        name: "Kosmetik",
+        icon: '§',
+    ),
+    (
+        name: "Küchenpapier",
+        icon: '🧻',
+    ),
+    (
+        name: "Getränke",
+        icon: '🍷',
+    ),
+    (
+        name: "Tiefkühlwaren",
+        icon: '🍕',
+    ),
+    (
+        name: "Kassenartikel",
+        icon: '§',
+    ),
+    (
+        name: "Bäcker",
+        icon: '🍞',
+    ),
+]
