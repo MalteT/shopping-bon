@@ -7,6 +7,7 @@ fn main() {
         .stop_bits(StopBits::One)
         .flow_control(FlowControl::None)
         .open_native()
-        .unwrap();
-    let printer = Printer::new(port);
+        .expect("Init serial failed");
+    let mut printer = Printer::new(port).expect("Init writing failed");
+    printer.print_test_page().expect("Test failed");
 }
