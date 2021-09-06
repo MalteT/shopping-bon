@@ -2,9 +2,9 @@ use bitflags::bitflags;
 use serialport::SerialPort;
 
 mod CMDS {
-    const ESC: &str = "0x1b";
-    const LF: &str = "0x0a";
-    const INITIALIZE_PRINTER: char = '@';
+    pub const ESC: &str = "0x1b";
+    pub const LF: &str = "0x0a";
+    pub const INITIALIZE_PRINTER: char = '@';
 }
 
 pub struct Printer<P>
