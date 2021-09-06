@@ -1,8 +1,9 @@
 use escpos_lib::Printer;
-use serialport::{DataBits, Parity, StopBits, FlowControl};
+use serialport::{DataBits, FlowControl, Parity, StopBits};
 
 fn main() {
-    let port = serialport::new("/dev/serial0", 9600).data_bits(DataBits::Eight)
+    let port = serialport::new("/dev/serial0", 9600)
+        .data_bits(DataBits::Eight)
         .parity(Parity::None)
         .stop_bits(StopBits::One)
         .flow_control(FlowControl::None)

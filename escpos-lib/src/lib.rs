@@ -28,14 +28,17 @@ where
     }
 
     pub fn print_test_page(&mut self) -> IoResult<()> {
-        self.exec(EscPosCmd::Text("Dies ist ein Test"))?;
+        self.exec(EscPosCmd::SelectReversePrinting(true))?;
+        self.exec(EscPosCmd::Text("Malte"))?;
+        self.exec(EscPosCmd::SelectReversePrinting(false))?;
+        self.exec(EscPosCmd::Text(": This is a test"))?;
         self.exec(EscPosCmd::PrintAndFeedLines(10))?;
         self.exec(EscPosCmd::CutPaper(CutMode::Full))?;
         Ok(())
     }
 
     pub fn exec(&mut self, cmd: EscPosCmd) -> IoResult<()> {
-        use cmds::{ESC, LF, INITIALIZE_PRINTER, GS};
+        use cmds::{ESC, GS, INITIALIZE_PRINTER, LF};
         match cmd {
             EscPosCmd::InitializePrinter => {
                 write!(self.port, "{}{}", ESC, INITIALIZE_PRINTER)
@@ -89,7 +92,12 @@ where
                 todo!()
             }
             EscPosCmd::SelectPrintColor(second_color) => {
-                write!(self.port, "{}r{}", ESC, if second_color { '1' } else { '0' })
+                write!(
+                    self.port,
+                    "{}r{}",
+                    ESC,
+                    if second_color { '1' } else { '0' }
+                )
             }
             EscPosCmd::SelectCharCodeTable(table) => {
                 let code = match table {
@@ -193,7 +201,6 @@ pub enum CharCodeTable {
     ThaiCharCode18,
     UserDefined1,
     UserDefined2,
-
 }
 
 pub struct PaperSensorMode {
