@@ -1,22 +1,81 @@
+use bitflags::bitflags;
 use serialport::SerialPort;
 
-pub struct Printer<P> where P: SerialPort {
+mod CMDS {
+    const ESC: char = "0x1b";
+    const LF: char = "0x0a";
+    const INITIALIZE_PRINTER: char = "@";
+}
+
+pub struct Printer<P>
+where
+    P: SerialPort,
+{
     port: P,
 }
 
-impl<P> Printer<P> where P: SerialPort {
+impl<P> Printer<P>
+where
+    P: SerialPort,
+{
     pub fn new(port: P) -> Self {
-        let printer = Printer { port };
+        let mut printer = Printer { port };
         printer.exec(EscPosCmd::InitializePrinter);
         printer
     }
 
-    pub fn exec(&self, cmd: EscPosCmd) {
+    pub fn exec(&mut self, cmd: EscPosCmd) {
+        use CMDS::*;
         match cmd {
             EscPosCmd::InitializePrinter => {
-                write!(self.port, "\x1b@");
+                write!(self.port, "{}{}", ESC, INITIALIZE_PRINTER);
             }
-            _ => todo!()
+            EscPosCmd::PrintAndLineFeed => {
+                write!(self.port, "{}", LF);
+            }
+            EscPosCmd::SelectPrintMode(mode) => {
+                write!(self.port, "{}!{}", ESC, mode.bits() as char);
+            }
+            EscPosCmd::SelectUnderlineMode(mode) => {
+                let param = match mode {
+                    UnderlineMode::Off => '0',
+                    UnderlineMode::OneDot => '1',
+                    UnderlineMode::TwoDot => '2',
+                };
+                write!(self.port, "{}-{}", ESC, param);
+            }
+            EscPosCmd::SelectEmphasized(enable) => {
+                write!(self.port, "{}E{}", ESC, if enable { '1' } else { '0' });
+            }
+            EscPosCmd::SelectDoubleStrike(enable) => {
+                write!(self.port, "{}G{}", ESC, if enable { '1' } else { '0' });
+            }
+            EscPosCmd::Font(font) => {
+                let param = match font {
+                    Font::A => '0',
+                    Font::B => '1',
+                    Font::C => '2',
+                };
+                write!(self.port, "{}M{}", ESC, param);
+            }
+            EscPosCmd::Justification(justification) => {
+                let param = match justification {
+                    Justification::Left => '0',
+                    Justification::Center => '1',
+                    Justification::Right => '2',
+                };
+                write!(self.port, "{}a{}", ESC, param);
+            }
+            EscPosCmd::SelectPaperSensorMode(mode) => {
+                todo!()
+            }
+            EscPosCmd::PrintAndLineFeed(lines) => {
+                write!(self.port, "{}d{}", lines as char);
+            }
+            EscPosCmd::PrintAndReverseFeedLines(lines) => {
+                write!(self.port, "{}e{}", lines as char);
+            }
+            _ => todo!(),
         }
     }
 }
@@ -33,8 +92,8 @@ pub enum EscPosCmd {
     SelectPaperSensorMode(PaperSensorMode), // FIXME: Implement
     PrintAndFeedLines(u8),
     PrintAndReverseFeedLines(u8), // FIXME: Implement
-    GeneratePulse(bool), // FIXME: Implement
-    SelectPrintColor(bool), // FIXME: Implement
+    GeneratePulse(bool),          // FIXME: Implement
+    SelectPrintColor(bool),       // FIXME: Implement
     SelectCharCodeTable(CharCodeTable),
     SelectReversePrinting(bool),
     CutPaper(CutMode),
@@ -72,6 +131,12 @@ pub enum UnderlineMode {
     TwoDot,
 }
 
-pub struct PrintMode {
-    TODO: u8,
+bitflags! {
+    pub struct PrintMode: u8 {
+        const FONT_B = 0b0000_0001;
+        const EMPHASIZED = 0b0000_1000;
+        const DOUBLE_HEIGHT = 0b0001_0000;
+        const DOUBLE_WIDTH = 0b0010_0000;
+        const UNDERLINE = 0b1000_0000;
+    }
 }
