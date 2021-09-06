@@ -1,5 +1,7 @@
 [workspace]
 
 members = [
-    "shopping-bon-bot"
+    "shopping-bon-bot",
+    "escpos-lib",
+    "print-bin",
 ]
