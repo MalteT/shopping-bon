@@ -2,9 +2,9 @@ use bitflags::bitflags;
 use serialport::SerialPort;
 
 mod CMDS {
-    const ESC: char = "0x1b";
-    const LF: char = "0x0a";
-    const INITIALIZE_PRINTER: char = "@";
+    const ESC: &str = "0x1b";
+    const LF: &str = "0x0a";
+    const INITIALIZE_PRINTER: char = '@';
 }
 
 pub struct Printer<P>
@@ -50,7 +50,7 @@ where
             EscPosCmd::SelectDoubleStrike(enable) => {
                 write!(self.port, "{}G{}", ESC, if enable { '1' } else { '0' });
             }
-            EscPosCmd::Font(font) => {
+            EscPosCmd::SelectFont(font) => {
                 let param = match font {
                     Font::A => '0',
                     Font::B => '1',
@@ -58,7 +58,7 @@ where
                 };
                 write!(self.port, "{}M{}", ESC, param);
             }
-            EscPosCmd::Justification(justification) => {
+            EscPosCmd::SelectJustification(justification) => {
                 let param = match justification {
                     Justification::Left => '0',
                     Justification::Center => '1',
