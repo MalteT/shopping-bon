@@ -2,8 +2,8 @@ use bitflags::bitflags;
 use serialport::SerialPort;
 
 mod CMDS {
-    pub const ESC: &str = "0x1b";
-    pub const LF: &str = "0x0a";
+    pub const ESC: char = '\x1b';
+    pub const LF: char = '\x0a';
     pub const INITIALIZE_PRINTER: char = '@';
 }
 
