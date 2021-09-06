@@ -1,0 +1,11 @@
+[target.armv7-unknown-linux-gnueabihf]
+image = "localhost/arduino-new"
+
+[target.armv7-unknown-linux-musleabihf]
+image = "localhost/arduino-new-musl"
+
+[build.env]
+passthrough = [
+    "OPENSSL_STATIC"
+]
+

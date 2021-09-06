@@ -1,0 +1,229 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector_Generic:Conn_02x20_Odd_Even J1
+U 1 1 6092A8F7
+P 3200 2400
+F 0 "J1" H 3250 3517 50  0000 C CNN
+F 1 "PiZeroW" H 3250 3426 50  0000 C CNN
+F 2 "" H 3200 2400 50  0001 C CNN
+F 3 "~" H 3200 2400 50  0001 C CNN
+	1    3200 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L Interface_UART:MAX232 U1
+U 1 1 6092C377
+P 5200 2700
+F 0 "U1" H 5200 4081 50  0000 C CNN
+F 1 "MAX232" H 5200 3990 50  0000 C CNN
+F 2 "" H 5250 1650 50  0001 L CNN
+F 3 "http://www.ti.com/lit/ds/symlink/max232.pdf" H 5200 2800 50  0001 C CNN
+	1    5200 2700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP C1
+U 1 1 6092FB97
+P 4400 1950
+F 0 "C1" H 4300 1850 50  0000 L CNN
+F 1 "1µF 16V" H 4600 1750 50  0000 R CNN
+F 2 "" H 4438 1800 50  0001 C CNN
+F 3 "~" H 4400 1950 50  0001 C CNN
+	1    4400 1950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP C4
+U 1 1 60933551
+P 7000 3600
+F 0 "C4" H 6800 3650 50  0000 L CNN
+F 1 "1µF 16V" H 6900 3550 50  0000 R CNN
+F 2 "" H 7038 3450 50  0001 C CNN
+F 3 "~" H 7000 3600 50  0001 C CNN
+	1    7000 3600
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:Earth #PWR0101
+U 1 1 60938928
+P 7450 3900
+F 0 "#PWR0101" H 7450 3650 50  0001 C CNN
+F 1 "Earth" H 7450 3750 50  0001 C CNN
+F 2 "" H 7450 3900 50  0001 C CNN
+F 3 "~" H 7450 3900 50  0001 C CNN
+	1    7450 3900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP C2
+U 1 1 6094E586
+P 6000 1950
+F 0 "C2" H 5800 2000 50  0000 L CNN
+F 1 "1µF 16V" H 5900 1900 50  0000 R CNN
+F 2 "" H 6038 1800 50  0001 C CNN
+F 3 "~" H 6000 1950 50  0001 C CNN
+	1    6000 1950
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	3650 1700 3500 1700
+$Comp
+L Device:CP C3
+U 1 1 60956717
+P 6600 1950
+F 0 "C3" V 6850 1900 50  0000 L CNN
+F 1 "1µF 6.3V" V 6750 1950 50  0000 C CNN
+F 2 "" H 6638 1800 50  0001 C CNN
+F 3 "~" H 6600 1950 50  0001 C CNN
+	1    6600 1950
+	1    0    0    1   
+$EndComp
+Connection ~ 5200 1500
+$Comp
+L Connector:Conn_01x02_Male J2
+U 1 1 6095C827
+P 7650 1600
+F 0 "J2" H 7622 1482 50  0000 R CNN
+F 1 "Power from Printer" H 7622 1573 50  0000 R CNN
+F 2 "" H 7650 1600 50  0001 C CNN
+F 3 "~" H 7650 1600 50  0001 C CNN
+	1    7650 1600
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	6000 2300 6600 2300
+Wire Wire Line
+	6600 2300 6600 2100
+Wire Wire Line
+	6600 1800 6600 1500
+Wire Wire Line
+	5200 1500 6600 1500
+Wire Wire Line
+	6600 1500 7450 1500
+Connection ~ 6600 1500
+Wire Wire Line
+	7450 1600 7450 3900
+Wire Wire Line
+	7450 3900 7000 3900
+Connection ~ 7450 3900
+Wire Wire Line
+	7000 2600 7000 3450
+Wire Wire Line
+	6000 2600 7000 2600
+$Comp
+L Connector:Conn_01x03_Male J3
+U 1 1 6097E25A
+P 6600 2900
+F 0 "J3" H 6572 2924 50  0000 R CNN
+F 1 "RS232" H 6572 2833 50  0000 R CNN
+F 2 "" H 6600 2900 50  0001 C CNN
+F 3 "~" H 6600 2900 50  0001 C CNN
+	1    6600 2900
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	6000 2800 6400 2800
+Wire Wire Line
+	6000 3200 6200 3200
+Wire Wire Line
+	6200 3200 6200 2900
+Wire Wire Line
+	6200 2900 6400 2900
+Wire Wire Line
+	6000 3400 6300 3400
+Wire Wire Line
+	6300 3400 6300 3000
+Wire Wire Line
+	6300 3000 6400 3000
+Wire Wire Line
+	7000 3750 7000 3900
+Connection ~ 7000 3900
+Wire Wire Line
+	7000 3900 5200 3900
+Wire Wire Line
+	3500 1500 5200 1500
+Wire Wire Line
+	5200 3900 3650 3900
+Connection ~ 5200 3900
+Wire Wire Line
+	3650 1700 3650 3200
+$Comp
+L Device:R R3
+U 1 1 60984366
+P 3800 3400
+F 0 "R3" V 4000 3400 50  0000 C CNN
+F 1 "R" V 3900 3400 50  0000 C CNN
+F 2 "" V 3730 3400 50  0001 C CNN
+F 3 "~" H 3800 3400 50  0001 C CNN
+	1    3800 3400
+	0    1    1    0   
+$EndComp
+Connection ~ 3650 3400
+Wire Wire Line
+	3650 3400 3650 3900
+$Comp
+L Device:R R4
+U 1 1 609853F6
+P 4250 3400
+F 0 "R4" V 4450 3400 50  0000 C CNN
+F 1 "R" V 4350 3400 50  0000 C CNN
+F 2 "" V 4180 3400 50  0001 C CNN
+F 3 "~" H 4250 3400 50  0001 C CNN
+	1    4250 3400
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R2
+U 1 1 60985894
+P 4250 3200
+F 0 "R2" V 4150 3200 50  0000 C CNN
+F 1 "R" V 4050 3200 50  0000 C CNN
+F 2 "" V 4180 3200 50  0001 C CNN
+F 3 "~" H 4250 3200 50  0001 C CNN
+	1    4250 3200
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R1
+U 1 1 60985CFE
+P 3800 3200
+F 0 "R1" V 3700 3200 50  0000 C CNN
+F 1 "R" V 3600 3200 50  0000 C CNN
+F 2 "" V 3730 3200 50  0001 C CNN
+F 3 "~" H 3800 3200 50  0001 C CNN
+	1    3800 3200
+	0    1    1    0   
+$EndComp
+Connection ~ 3650 3200
+Wire Wire Line
+	3650 3200 3650 3400
+Wire Wire Line
+	4100 3200 3950 3200
+Wire Wire Line
+	3950 3400 4100 3400
+Wire Wire Line
+	4400 2800 4250 2800
+Wire Wire Line
+	4250 2800 4250 1800
+Wire Wire Line
+	3500 1800 4250 1800
+Wire Wire Line
+	4100 3200 4100 1900
+Wire Wire Line
+	4100 1900 3500 1900
+Connection ~ 4100 3200
+$EndSCHEMATC
