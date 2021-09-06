@@ -25,7 +25,7 @@ where
     }
 
     pub fn exec(&mut self, cmd: EscPosCmd) {
-        use CMDS::*;
+        use CMDS::{ESC, LF, INITIALIZE_PRINTER};
         match cmd {
             EscPosCmd::InitializePrinter => {
                 write!(self.port, "{}{}", ESC, INITIALIZE_PRINTER);
@@ -69,11 +69,11 @@ where
             EscPosCmd::SelectPaperSensorMode(mode) => {
                 todo!()
             }
-            EscPosCmd::PrintAndLineFeed(lines) => {
-                write!(self.port, "{}d{}", lines as char);
+            EscPosCmd::PrintAndFeedLines(lines) => {
+                write!(self.port, "{}d{}", ESC, lines as char);
             }
             EscPosCmd::PrintAndReverseFeedLines(lines) => {
-                write!(self.port, "{}e{}", lines as char);
+                write!(self.port, "{}e{}", ESC, lines as char);
             }
             _ => todo!(),
         }
