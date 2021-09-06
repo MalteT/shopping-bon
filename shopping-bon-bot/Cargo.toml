@@ -20,6 +20,7 @@ features = ["ron_enc"]
 
 [dependencies.telegram-bot]
 git = "https://github.com/telegram-rs/telegram-bot"
+branch = "main"
 version = "0.9.0"
 
 [dependencies.tokio]
