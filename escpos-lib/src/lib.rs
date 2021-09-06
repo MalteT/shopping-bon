@@ -1,13 +1,89 @@
 use bitflags::bitflags;
 use serialport::SerialPort;
 
-use std::io::Result as IoResult;
+use std::{fmt, io::Result as IoResult};
 
 mod cmds {
     pub const ESC: char = '\x1b';
     pub const LF: char = '\x0a';
     pub const GS: char = '\x1d';
     pub const INITIALIZE_PRINTER: char = '@';
+}
+
+#[derive(Debug, Default)]
+pub struct FormattedStr<S> {
+    mode: PrintMode,
+    reverse_color: bool,
+    text: S,
+}
+
+pub trait FmtStr<S> {
+    fn emph(self) -> FormattedStr<S>;
+    fn higher(self) -> FormattedStr<S>;
+    fn wider(self) -> FormattedStr<S>;
+    fn underline(self) -> FormattedStr<S>;
+    fn reverse(self) -> FormattedStr<S>;
+}
+
+impl<S: fmt::Display> fmt::Display for FormattedStr<S> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.reverse_color {
+            write!(f, "{}", EscPosCmd::SelectReversePrinting(true))?;
+        }
+        write!(
+            f,
+            "{}{}{}",
+            EscPosCmd::SelectPrintMode(self.mode),
+            self.text,
+            EscPosCmd::SelectPrintMode(PrintMode::empty())
+        )?;
+        if self.reverse_color {
+            write!(f, "{}", EscPosCmd::SelectReversePrinting(false))?;
+        }
+        Ok(())
+    }
+}
+
+impl<'s> FmtStr<&'s str> for &'s str {
+    fn emph(self) -> FormattedStr<&'s str> {
+        FormattedStr {
+            mode: PrintMode::EMPHASIZED,
+            text: self,
+            ..Default::default()
+        }
+    }
+
+    fn higher(self) -> FormattedStr<&'s str> {
+        FormattedStr {
+            mode: PrintMode::DOUBLE_HEIGHT,
+            text: self,
+            ..Default::default()
+        }
+    }
+
+    fn wider(self) -> FormattedStr<&'s str> {
+        FormattedStr {
+            mode: PrintMode::DOUBLE_WIDTH,
+            text: self,
+            ..Default::default()
+        }
+    }
+
+    fn underline(self) -> FormattedStr<&'s str> {
+        FormattedStr {
+            mode: PrintMode::UNDERLINE,
+            text: self,
+            ..Default::default()
+        }
+    }
+
+    fn reverse(self) -> FormattedStr<&'s str> {
+        FormattedStr {
+            reverse_color: true,
+            text: self,
+            ..Default::default()
+        }
+    }
 }
 
 pub struct Printer<P>
@@ -28,121 +104,19 @@ where
     }
 
     pub fn print_test_page(&mut self) -> IoResult<()> {
-        self.exec(EscPosCmd::SelectReversePrinting(true))?;
-        self.exec(EscPosCmd::Text("Malte"))?;
-        self.exec(EscPosCmd::SelectReversePrinting(false))?;
-        self.exec(EscPosCmd::Text(": This is a test"))?;
+        let text = format!("{}: This is a test!", "Malte".reverse());
+        self.write(text)?;
         self.exec(EscPosCmd::PrintAndFeedLines(10))?;
         self.exec(EscPosCmd::CutPaper(CutMode::Full))?;
         Ok(())
     }
 
+    pub fn write<S: Into<String>>(&mut self, text: S) -> IoResult<()> {
+        write!(self.port, "{}", EscPosCmd::Text(&text.into()))
+    }
+
     pub fn exec(&mut self, cmd: EscPosCmd) -> IoResult<()> {
-        use cmds::{ESC, GS, INITIALIZE_PRINTER, LF};
-        match cmd {
-            EscPosCmd::InitializePrinter => {
-                write!(self.port, "{}{}", ESC, INITIALIZE_PRINTER)
-            }
-            EscPosCmd::PrintAndLineFeed => {
-                write!(self.port, "{}", LF)
-            }
-            EscPosCmd::SelectPrintMode(mode) => {
-                write!(self.port, "{}!{}", ESC, mode.bits() as char)
-            }
-            EscPosCmd::SelectUnderlineMode(mode) => {
-                let param = match mode {
-                    UnderlineMode::Off => '0',
-                    UnderlineMode::OneDot => '1',
-                    UnderlineMode::TwoDot => '2',
-                };
-                write!(self.port, "{}-{}", ESC, param)
-            }
-            EscPosCmd::SelectEmphasized(enable) => {
-                write!(self.port, "{}E{}", ESC, if enable { '1' } else { '0' })
-            }
-            EscPosCmd::SelectDoubleStrike(enable) => {
-                write!(self.port, "{}G{}", ESC, if enable { '1' } else { '0' })
-            }
-            EscPosCmd::SelectFont(font) => {
-                let param = match font {
-                    Font::A => '0',
-                    Font::B => '1',
-                    Font::C => '2',
-                };
-                write!(self.port, "{}M{}", ESC, param)
-            }
-            EscPosCmd::SelectJustification(justification) => {
-                let param = match justification {
-                    Justification::Left => '0',
-                    Justification::Center => '1',
-                    Justification::Right => '2',
-                };
-                write!(self.port, "{}a{}", ESC, param)
-            }
-            EscPosCmd::SelectPaperSensorMode(_mode) => {
-                todo!()
-            }
-            EscPosCmd::PrintAndFeedLines(lines) => {
-                write!(self.port, "{}d{}", ESC, lines as char)
-            }
-            EscPosCmd::PrintAndReverseFeedLines(lines) => {
-                write!(self.port, "{}e{}", ESC, lines as char)
-            }
-            EscPosCmd::GeneratePulse(_) => {
-                todo!()
-            }
-            EscPosCmd::SelectPrintColor(second_color) => {
-                write!(
-                    self.port,
-                    "{}r{}",
-                    ESC,
-                    if second_color { '1' } else { '0' }
-                )
-            }
-            EscPosCmd::SelectCharCodeTable(table) => {
-                let code = match table {
-                    CharCodeTable::PC437 => 0_u8,
-                    CharCodeTable::Katakana => 1,
-                    CharCodeTable::PC850 => 2,
-                    CharCodeTable::PC860 => 3,
-                    CharCodeTable::PC863 => 4,
-                    CharCodeTable::PC865 => 5,
-                    CharCodeTable::WPC1252 => 16,
-                    CharCodeTable::PC866 => 17,
-                    CharCodeTable::PC852 => 18,
-                    CharCodeTable::PC858 => 19,
-                    CharCodeTable::ThaiCharCode42 => 20,
-                    CharCodeTable::ThaiCharCode11 => 21,
-                    CharCodeTable::ThaiCharCode13 => 22,
-                    CharCodeTable::ThaiCharCode14 => 23,
-                    CharCodeTable::ThaiCharCode16 => 24,
-                    CharCodeTable::ThaiCharCode17 => 25,
-                    CharCodeTable::ThaiCharCode18 => 26,
-                    CharCodeTable::UserDefined1 => 254,
-                    CharCodeTable::UserDefined2 => 255,
-                };
-                write!(self.port, "{}t{}", ESC, code as char)
-            }
-            EscPosCmd::SelectReversePrinting(enable) => {
-                write!(self.port, "{}B{}", GS, if enable { '1' } else { '0' })
-            }
-            EscPosCmd::CutPaper(mode) => {
-                let param = match mode {
-                    CutMode::Full => '0',
-                    CutMode::Partial => '1',
-                };
-                write!(self.port, "{}V{}", GS, param)
-            }
-            EscPosCmd::SelectBarCodeHeight(height) => {
-                write!(self.port, "{}h{}", GS, height)
-            }
-            EscPosCmd::PrintBarCode(u8) => {
-                todo!()
-            }
-            EscPosCmd::Text(text) => {
-                write!(self.port, "{}", text)
-            }
-        }
+        write!(self.port, "{}", cmd)
     }
 }
 
@@ -166,6 +140,111 @@ pub enum EscPosCmd<'s> {
     SelectBarCodeHeight(u8),
     PrintBarCode(u8),
     Text(&'s str),
+}
+
+impl fmt::Display for EscPosCmd<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use cmds::{ESC, GS, INITIALIZE_PRINTER, LF};
+        match self {
+            EscPosCmd::InitializePrinter => {
+                write!(f, "{}{}", ESC, INITIALIZE_PRINTER)
+            }
+            EscPosCmd::PrintAndLineFeed => {
+                write!(f, "{}", LF)
+            }
+            EscPosCmd::SelectPrintMode(mode) => {
+                write!(f, "{}!{}", ESC, mode.bits() as char)
+            }
+            EscPosCmd::SelectUnderlineMode(mode) => {
+                let param = match mode {
+                    UnderlineMode::Off => '0',
+                    UnderlineMode::OneDot => '1',
+                    UnderlineMode::TwoDot => '2',
+                };
+                write!(f, "{}-{}", ESC, param)
+            }
+            EscPosCmd::SelectEmphasized(enable) => {
+                write!(f, "{}E{}", ESC, if *enable { '1' } else { '0' })
+            }
+            EscPosCmd::SelectDoubleStrike(enable) => {
+                write!(f, "{}G{}", ESC, if *enable { '1' } else { '0' })
+            }
+            EscPosCmd::SelectFont(font) => {
+                let param = match font {
+                    Font::A => '0',
+                    Font::B => '1',
+                    Font::C => '2',
+                };
+                write!(f, "{}M{}", ESC, param)
+            }
+            EscPosCmd::SelectJustification(justification) => {
+                let param = match justification {
+                    Justification::Left => '0',
+                    Justification::Center => '1',
+                    Justification::Right => '2',
+                };
+                write!(f, "{}a{}", ESC, param)
+            }
+            EscPosCmd::SelectPaperSensorMode(_mode) => {
+                todo!()
+            }
+            EscPosCmd::PrintAndFeedLines(lines) => {
+                write!(f, "{}d{}", ESC, *lines as char)
+            }
+            EscPosCmd::PrintAndReverseFeedLines(lines) => {
+                write!(f, "{}e{}", ESC, *lines as char)
+            }
+            EscPosCmd::GeneratePulse(_) => {
+                todo!()
+            }
+            EscPosCmd::SelectPrintColor(second_color) => {
+                write!(f, "{}r{}", ESC, if *second_color { '1' } else { '0' })
+            }
+            EscPosCmd::SelectCharCodeTable(table) => {
+                let code = match table {
+                    CharCodeTable::PC437 => 0_u8,
+                    CharCodeTable::Katakana => 1,
+                    CharCodeTable::PC850 => 2,
+                    CharCodeTable::PC860 => 3,
+                    CharCodeTable::PC863 => 4,
+                    CharCodeTable::PC865 => 5,
+                    CharCodeTable::WPC1252 => 16,
+                    CharCodeTable::PC866 => 17,
+                    CharCodeTable::PC852 => 18,
+                    CharCodeTable::PC858 => 19,
+                    CharCodeTable::ThaiCharCode42 => 20,
+                    CharCodeTable::ThaiCharCode11 => 21,
+                    CharCodeTable::ThaiCharCode13 => 22,
+                    CharCodeTable::ThaiCharCode14 => 23,
+                    CharCodeTable::ThaiCharCode16 => 24,
+                    CharCodeTable::ThaiCharCode17 => 25,
+                    CharCodeTable::ThaiCharCode18 => 26,
+                    CharCodeTable::UserDefined1 => 254,
+                    CharCodeTable::UserDefined2 => 255,
+                };
+                write!(f, "{}t{}", ESC, code as char)
+            }
+            EscPosCmd::SelectReversePrinting(enable) => {
+                write!(f, "{}B{}", GS, if *enable { '1' } else { '0' })
+            }
+            EscPosCmd::CutPaper(mode) => {
+                let param = match mode {
+                    CutMode::Full => '0',
+                    CutMode::Partial => '1',
+                };
+                write!(f, "{}V{}", GS, param)
+            }
+            EscPosCmd::SelectBarCodeHeight(height) => {
+                write!(f, "{}h{}", GS, height)
+            }
+            EscPosCmd::PrintBarCode(_bar_code) => {
+                todo!()
+            }
+            EscPosCmd::Text(text) => {
+                write!(f, "{}", text)
+            }
+        }
+    }
 }
 
 pub enum CutMode {
@@ -232,5 +311,11 @@ bitflags! {
         const DOUBLE_HEIGHT = 0b0001_0000;
         const DOUBLE_WIDTH = 0b0010_0000;
         const UNDERLINE = 0b1000_0000;
+    }
+}
+
+impl Default for PrintMode {
+    fn default() -> Self {
+        Self::empty()
     }
 }
