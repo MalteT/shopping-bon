@@ -71,6 +71,12 @@ where
         write!(self.port, "{}", EscPosCmd::Text(&text.into()))
     }
 
+    pub fn write_and_cut<S: Into<String>>(&mut self, text: S) -> IoResult<()> {
+        self.write(text)?;
+        self.exec(EscPosCmd::PrintAndFeedLines(4))?;
+        self.exec(EscPosCmd::CutPaper(CutMode::Full))
+    }
+
     pub fn exec(&mut self, cmd: EscPosCmd) -> IoResult<()> {
         write!(self.port, "{}", cmd)
     }

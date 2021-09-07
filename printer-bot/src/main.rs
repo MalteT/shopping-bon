@@ -4,11 +4,21 @@ use lazy_static::lazy_static;
 use serialport::SerialPort;
 use telegram_bot::{
     Api, CanSendMessage, Error as TelegramError, Message, MessageKind, UpdateKind, UpdatesStream,
-    User, UserId,
+    User as TelegramUser, UserId,
 };
-use tracing::{error, info, warn};
+use tracing::{info, warn};
 
-use std::{env, time::Duration};
+use std::{
+    collections::HashMap,
+    env,
+    time::{Duration, Instant},
+};
+
+mod error;
+mod settings;
+
+pub use error::Error;
+pub use settings::SETTINGS;
 
 macro_rules! env_expect {
     ($env:literal) => {
@@ -59,6 +69,22 @@ pub struct TelegramBot<P: SerialPort> {
     api: Api,
     stream: UpdatesStream,
     printer: Printer<P>,
+    history: History,
+}
+
+pub struct History {
+    last_print: HashMap<UserId, Instant>,
+}
+
+impl History {
+    pub fn new() -> Self {
+        History {
+            last_print: HashMap::new(),
+        }
+    }
+    pub fn duration_since_last_print(&self, id: &UserId) -> Option<Duration> {
+        self.last_print.get(&id).map(|instant| instant.elapsed())
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -68,7 +94,7 @@ pub enum CommandKind {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Command {
-    pub source: User,
+    pub source: TelegramUser,
     pub kind: CommandKind,
 }
 
@@ -78,10 +104,12 @@ impl<P: SerialPort> TelegramBot<P> {
         let api = Api::new(token);
         let stream = api.stream();
         let printer = Printer::new(port).expect("Failed to initialize printer");
+        let history = History::new();
         TelegramBot {
             api,
             stream,
             printer,
+            history,
         }
     }
 
@@ -97,48 +125,65 @@ impl<P: SerialPort> TelegramBot<P> {
         Ok(cmd)
     }
 
-    pub async fn handle(&mut self, cmd: &Command) -> Result<(), TelegramError> {
+    pub async fn handle(&mut self, cmd: &Command) -> Result<(), Error> {
         let Command { source, kind } = cmd;
         match kind {
-            CommandKind::Print(text) => {
-                let allowance = if source.id == *ADMIN_ID {
-                    Some(usize::MAX)
-                } else if USER_IDS.contains(&source.id) {
-                    Some(200)
-                } else {
-                    None
-                };
-                if let Some(max_length) = allowance {
-                    if text.len() <= max_length {
-                        let name = if let Some(ref last_name) = source.last_name {
-                            format!(" {} {} ", source.first_name, last_name)
-                        } else {
-                            format!(" {} ", source.first_name)
-                        };
-                        let formatted = format!("{}: {}\n", name.reverse(), text);
-                        if let Err(why) = self.printer.write(formatted) {
-                            error!("Failed to print message: {}", why);
-                        }
-                    } else {
-                        let msg = source.id.text(format!(
-                            "You're only allowed to print {} characters, your message had {}!",
-                            max_length,
-                            text.len()
-                        ));
-                        if let Err(why) = self.api.send(msg).await {
-                            error!("Failed to send message: {}", why);
-                        }
-                    }
-                } else {
-                    let msg = source
-                        .id
-                        .text("My mother always said not to talk to strangers..");
-                    if let Err(why) = self.api.send(msg).await {
-                        error!("Failed to send message: {}", why);
-                    }
-                }
-            }
+            CommandKind::Print(text) => self.handle_print_cmd(source, text).await,
         }
+    }
+
+    async fn handle_print_cmd(&mut self, source: &TelegramUser, text: &String) -> Result<(), Error> {
+        if self.is_printing_allowed(source.id) {
+            if self.is_print_length_allowed(source.id, text.len()) {
+                self.print_message(source, text)?;
+                self.send(source.id, "🖨️✅").await
+            } else {
+                self.send(source.id, "🖨️❌ That message is too long!")
+                    .await?;
+                Ok(())
+            }
+        } else {
+            self.send(source.id, "🖨️❌ You may not print now!").await?;
+            Ok(())
+        }
+    }
+
+    fn print_message(&mut self, source: &TelegramUser, text: &String) -> Result<(), Error> {
+        let name = if let Some(ref last_name) = source.last_name {
+            format!(" {} {} ", source.first_name, last_name)
+        } else {
+            format!(" {} ", source.first_name)
+        };
+        let formatted = format!("{}: {}\n", name.reverse(), text);
+        self.printer
+            .write_and_cut(formatted)
+            .map_err(Error::Printing)
+    }
+
+    fn is_print_length_allowed(&self, id: UserId, len: usize) -> bool {
+        if let Some(role) = SETTINGS.get_role(id) {
+            len <= role.max_print_len
+        } else {
+            false
+        }
+    }
+
+    fn is_printing_allowed(&self, id: UserId) -> bool {
+        if let Some(role) = SETTINGS.get_role(id) {
+            let expected_dur = Duration::from_secs(60 * role.minutes_between_prints as u64);
+            if let Some(real_dur) = self.history.duration_since_last_print(&id) {
+                expected_dur > real_dur
+            } else {
+                true
+            }
+        } else {
+            false
+        }
+    }
+
+    async fn send(&mut self, id: UserId, text: &str) -> Result<(), Error> {
+        let msg = id.text(text);
+        self.api.send(msg).await.map_err(Error::SendingMessage)?;
         Ok(())
     }
 }
