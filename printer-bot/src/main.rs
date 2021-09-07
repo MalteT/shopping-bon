@@ -85,6 +85,9 @@ impl History {
     pub fn duration_since_last_print(&self, id: &UserId) -> Option<Duration> {
         self.last_print.get(&id).map(|instant| instant.elapsed())
     }
+    pub fn add_print(&mut self, id: &UserId) {
+        self.last_print.insert(*id, Instant::now());
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -136,14 +139,17 @@ impl<P: SerialPort> TelegramBot<P> {
         if self.is_printing_allowed(source.id) {
             if self.is_print_length_allowed(source.id, text.len()) {
                 self.print_message(source, text)?;
+                info!("Printed message {:?} from id '{}'", text, source.id);
                 self.send(source.id, "🖨️✅").await
             } else {
                 self.send(source.id, "🖨️❌ That message is too long!")
                     .await?;
+                info!("Rejected print command for long message from id: {}", source.id);
                 Ok(())
             }
         } else {
             self.send(source.id, "🖨️❌ You may not print now!").await?;
+            info!("Rejected print command from id: {}", source.id);
             Ok(())
         }
     }
@@ -157,7 +163,9 @@ impl<P: SerialPort> TelegramBot<P> {
         let formatted = format!("{}: {}\n", name.reverse(), text);
         self.printer
             .write_and_cut(formatted)
-            .map_err(Error::Printing)
+            .map_err(Error::Printing)?;
+        self.history.add_print(&source.id);
+        Ok(())
     }
 
     fn is_print_length_allowed(&self, id: UserId, len: usize) -> bool {
