@@ -66,7 +66,7 @@ impl<P: SerialPort> TelegramBot<P> {
     /// # Arguments
     /// - `port`: The serial port the printer is connected to.
     pub fn init(port: P) -> Self {
-        let token = &SETTINGS.bot_token;
+        let token = &SETTINGS.bot.token;
         let api = Api::new(token);
         let stream = api.stream();
         let printer = Printer::new(port).expect("Failed to initialize printer");

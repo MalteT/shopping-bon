@@ -40,7 +40,14 @@ pub struct Settings {
     pub roles: Vec<Role>,
     pub users: Vec<User>,
     pub printer: Printer,
-    pub bot_token: String,
+    pub bot: Bot,
+    #[serde(default, skip_serializing)]
+    _cannot_create: PhantomData<()>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Bot {
+    pub token: String,
     #[serde(default, skip_serializing)]
     _cannot_create: PhantomData<()>,
 }
@@ -99,7 +106,10 @@ impl Settings {
                         baud_rate: 9600,
                         _cannot_create: PhantomData,
                     },
-                    bot_token: String::from("[YOUR TELEGRAM BOT TOKEN]"),
+                    bot: Bot {
+                        token: String::from("[YOUR TELEGRAM BOT TOKEN]"),
+                        _cannot_create: PhantomData,
+                    },
                     _cannot_create: PhantomData,
                 };
                 let content =
