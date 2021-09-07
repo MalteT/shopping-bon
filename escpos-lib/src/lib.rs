@@ -81,3 +81,8 @@ where
         write!(self.port, "{}", cmd)
     }
 }
+
+/// Escape a string to print safely
+pub fn escape(raw: &str) -> String {
+    raw.replace(chars::ESC, "?").replace(chars::GS, "?")
+}
