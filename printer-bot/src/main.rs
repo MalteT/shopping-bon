@@ -199,7 +199,11 @@ impl<P: SerialPort> TelegramBot<P> {
 fn message_to_command(message: Message) -> Option<Command> {
     // We only care about text messages
     let kind = if let MessageKind::Text { data, .. } = message.kind {
-        Some(CommandKind::Print(data))
+        if data == "/start" {
+            None
+        } else {
+            Some(CommandKind::Print(data))
+        }
     } else {
         None
     };
