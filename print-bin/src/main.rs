@@ -11,10 +11,11 @@ fn main() {
         .expect("Init serial failed");
     let mut printer = Printer::new(port).expect("Init writing failed");
     let string = format!(
-        "{}\nDies ist ein {} mit {}",
-        "Test".wider(),
-        "Test".emph(),
-        "Formatierung".higher()
+        "{}\nDies ist {}{} mit {}\n",
+        "Test".wider().reverse(),
+        "ein ".underline(),
+        "Test".emph().underline(),
+        "Formatierung".higher().small().underline()
     );
     printer.write(&string).expect("Writing failed");
     printer.print_test_page().expect("Test failed");

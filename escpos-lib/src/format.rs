@@ -9,6 +9,7 @@ pub struct FormattedStr<S> {
     mode: PrintMode,
     reverse_color: bool,
     text: S,
+    bold: bool,
 }
 
 pub trait FmtStr<S> {
@@ -17,24 +18,30 @@ pub trait FmtStr<S> {
     fn wider(self) -> FormattedStr<S>;
     fn underline(self) -> FormattedStr<S>;
     fn reverse(self) -> FormattedStr<S>;
+    fn small(self) -> FormattedStr<S>;
 }
 
 impl<S: fmt::Display> fmt::Display for FormattedStr<S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.reverse_color {
-            write!(f, "{}", EscPosCmd::SelectReversePrinting(true))?;
+        use EscPosCmd::*;
+        macro_rules! maybe_print {
+            ($q:expr, $val:expr) => {
+                if $q {
+                    $val
+                } else {
+                    EscPosCmd::Text("")
+                }
+            };
         }
         write!(
             f,
-            "{}{}{}",
-            EscPosCmd::SelectPrintMode(self.mode),
+            "{}{}{}{}{}",
+            maybe_print!(self.reverse_color, SelectReversePrinting(true)),
+            SelectPrintMode(self.mode),
             self.text,
-            EscPosCmd::SelectPrintMode(PrintMode::empty())
-        )?;
-        if self.reverse_color {
-            write!(f, "{}", EscPosCmd::SelectReversePrinting(false))?;
-        }
-        Ok(())
+            SelectPrintMode(PrintMode::empty()),
+            maybe_print!(self.reverse_color, SelectReversePrinting(false)),
+        )
     }
 }
 
@@ -76,6 +83,58 @@ impl<'s> FmtStr<&'s str> for &'s str {
             reverse_color: true,
             text: self,
             ..Default::default()
+        }
+    }
+
+    fn small(self) -> FormattedStr<&'s str> {
+        FormattedStr {
+            mode: PrintMode::FONT_B,
+            text: self,
+            ..Default::default()
+        }
+    }
+}
+
+impl<S> FmtStr<S> for FormattedStr<S> {
+    fn emph(self) -> FormattedStr<S> {
+        FormattedStr {
+            mode: self.mode | PrintMode::EMPHASIZED,
+            ..self
+        }
+    }
+
+    fn higher(self) -> FormattedStr<S> {
+        FormattedStr {
+            mode: self.mode | PrintMode::DOUBLE_HEIGHT,
+            ..self
+        }
+    }
+
+    fn wider(self) -> FormattedStr<S> {
+        FormattedStr {
+            mode: self.mode | PrintMode::DOUBLE_WIDTH,
+            ..self
+        }
+    }
+
+    fn underline(self) -> FormattedStr<S> {
+        FormattedStr {
+            mode: self.mode | PrintMode::UNDERLINE,
+            ..self
+        }
+    }
+
+    fn reverse(self) -> FormattedStr<S> {
+        FormattedStr {
+            reverse_color: true,
+            ..self
+        }
+    }
+
+    fn small(self) -> FormattedStr<S> {
+        FormattedStr {
+            mode: self.mode | PrintMode::FONT_B,
+            ..self
         }
     }
 }

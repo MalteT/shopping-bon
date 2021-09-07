@@ -6,7 +6,7 @@ mod cmds;
 mod format;
 
 use cmds::{CutMode, EscPosCmd};
-pub use format::FmtStr;
+pub use format::{FormattedStr, FmtStr};
 
 /// Special characters
 mod chars {
