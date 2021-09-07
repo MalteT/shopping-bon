@@ -1,4 +1,4 @@
-use escpos_lib::Printer;
+use escpos_lib::{FmtStr, Printer};
 use serialport::{DataBits, FlowControl, Parity, StopBits};
 
 fn main() {
@@ -10,5 +10,12 @@ fn main() {
         .open_native()
         .expect("Init serial failed");
     let mut printer = Printer::new(port).expect("Init writing failed");
+    let string = format!(
+        "{}\nDies ist ein {} mit {}",
+        "Test".wider(),
+        "Test".emph(),
+        "Formatierung".higher()
+    );
+    printer.write(&string).expect("Writing failed");
     printer.print_test_page().expect("Test failed");
 }
