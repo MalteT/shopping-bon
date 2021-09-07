@@ -114,9 +114,9 @@ impl fmt::Display for EscPosCmd<'_> {
             }
             EscPosCmd::SelectUnderlineMode(mode) => {
                 let param = match mode {
-                    UnderlineMode::Off => '0',
-                    UnderlineMode::OneDot => '1',
-                    UnderlineMode::TwoDot => '2',
+                    UnderlineMode::Off => '\x00',
+                    UnderlineMode::OneDot => '\x01',
+                    UnderlineMode::TwoDot => '\x02',
                 };
                 write!(f, "{}-{}", ESC, param)
             }
