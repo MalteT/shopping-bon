@@ -40,19 +40,19 @@ impl<S: fmt::Display> fmt::Display for FormattedStr<S> {
         write!(
             f,
             "{}{}{}{}{}{}{}",
+            SelectPrintMode(self.mode),
             maybe_print!(self.reverse_color, SelectReversePrinting(true)),
             maybe_print!(
                 self.underline != UnderlineMode::Off,
                 SelectUnderlineMode(self.underline)
             ),
-            SelectPrintMode(self.mode),
             self.text,
-            SelectPrintMode(PrintMode::empty()),
             maybe_print!(
                 self.underline != UnderlineMode::Off,
                 SelectUnderlineMode(UnderlineMode::Off)
             ),
             maybe_print!(self.reverse_color, SelectReversePrinting(false)),
+            SelectPrintMode(PrintMode::empty()),
         )
     }
 }
