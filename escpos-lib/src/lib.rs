@@ -35,7 +35,7 @@ where
 
     pub fn print_test_page(&mut self) -> IoResult<()> {
         let header = format!("{}\nDies ist ein Test\n", " TEST ".reverse());
-        let fmt_strings = vec![
+        let format_strings = vec![
             "Emphasized".emph(),
             "Higher".higher(),
             "Wider".wider(),
@@ -57,11 +57,11 @@ where
             "Underlined Reversed".underline().reverse(),
             "Underlined Small".underline().small(),
             "Reversed Small".reverse().small(),
-        ].drain(..).fold(String::new(), |list, fmt_str| {
-            list + &format!(" - {}", fmt_str)
-        });
+        ];
+        for string in format_strings {
+            self.write(&format!(" - {}\n", string))?
+        }
         self.write(header)?;
-        self.write(fmt_strings)?;
         self.exec(EscPosCmd::PrintAndFeedLines(5))?;
         self.exec(EscPosCmd::CutPaper(CutMode::Full))?;
         Ok(())
