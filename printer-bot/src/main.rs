@@ -1,6 +1,5 @@
 use escpos_lib::{FmtStr, Printer};
 use futures::StreamExt;
-use lazy_static::lazy_static;
 use serialport::SerialPort;
 use telegram_bot::{
     Api, CanSendMessage, Error as TelegramError, Message, MessageKind, UpdateKind, UpdatesStream,
@@ -41,30 +40,7 @@ macro_rules! env_expect {
     }
 }
 
-lazy_static! {
-    static ref ADMIN_ID: UserId = {
-        let id = env_expect!("PRINTER_BOT_ADMIN_ID")
-            .parse()
-            .expect("PRINTER_BOT_ADMIN_ID is not a number");
-        UserId::new(id)
-    };
-    static ref USER_IDS: Vec<UserId> = {
-        env_expect!("PRINTER_BOT_USER_IDS")
-            .split(',')
-            .map(|id| id.trim())
-            .map(str::parse)
-            .filter_map(|res| match res {
-                Ok(nr) => Some(nr),
-                Err(e) => {
-                    warn!("PRINTER_BOT_USER_IDS contains non-numeric values: {}", e);
-                    None
-                }
-            })
-            .map(UserId::new)
-            .collect()
-    };
-}
-
+/// All relevant state.
 pub struct TelegramBot<P: SerialPort> {
     api: Api,
     stream: UpdatesStream,
@@ -72,38 +48,52 @@ pub struct TelegramBot<P: SerialPort> {
     history: History,
 }
 
+/// History of executed command.
 pub struct History {
+    /// Instances the corresponding users last printed something.
     last_print: HashMap<UserId, Instant>,
 }
 
 impl History {
+    /// Initialize an empty history.
     pub fn new() -> Self {
         History {
             last_print: HashMap::new(),
         }
     }
+    /// Get the time passed since the given user last printed something.
     pub fn duration_since_last_print(&self, id: &UserId) -> Option<Duration> {
         self.last_print.get(&id).map(|instant| instant.elapsed())
     }
+    /// Update the last time the given user printed something.
     pub fn add_print(&mut self, id: &UserId) {
         self.last_print.insert(*id, Instant::now());
     }
 }
 
+/// Possible commands that can be executed.
 #[derive(Debug, PartialEq, Eq)]
 pub enum CommandKind {
+    /// Print the given string.
     Print(String),
 }
 
+/// Command send via Telegram.
 #[derive(Debug, PartialEq, Eq)]
 pub struct Command {
+    /// User that send the command.
     pub source: TelegramUser,
+    /// Command send by the user.
     pub kind: CommandKind,
 }
 
 impl<P: SerialPort> TelegramBot<P> {
+    /// Initialize the bot with all corresponding data.
+    ///
+    /// # Arguments
+    /// - `port`: The serial port the printer is connected to.
     pub fn init(port: P) -> Self {
-        let token = env_expect!("PRINTER_BOT_TOKEN");
+        let token = &SETTINGS.bot_token;
         let api = Api::new(token);
         let stream = api.stream();
         let printer = Printer::new(port).expect("Failed to initialize printer");
@@ -115,7 +105,7 @@ impl<P: SerialPort> TelegramBot<P> {
             history,
         }
     }
-
+    /// Poll for updates from the Telegram API.
     pub async fn poll(&mut self) -> Result<Option<Command>, TelegramError> {
         let cmd = self.stream.next().await.transpose()?.and_then(|update| {
             // If the received update contains a new message...
@@ -127,14 +117,16 @@ impl<P: SerialPort> TelegramBot<P> {
         });
         Ok(cmd)
     }
-
+    /// Handle the given command.
     pub async fn handle(&mut self, cmd: &Command) -> Result<(), Error> {
         let Command { source, kind } = cmd;
         match kind {
             CommandKind::Print(text) => self.handle_print_cmd(source, text).await,
         }
     }
-
+    /// Handle the print command.
+    ///
+    /// Prints the data and sends feedback to the user who issued it.
     async fn handle_print_cmd(&mut self, source: &TelegramUser, text: &String) -> Result<(), Error> {
         if self.is_printing_allowed(source.id) {
             if self.is_print_length_allowed(source.id, text.len()) {
@@ -153,7 +145,9 @@ impl<P: SerialPort> TelegramBot<P> {
             Ok(())
         }
     }
-
+    /// Print the given Message.
+    ///
+    /// Adjusts the history aswell.
     fn print_message(&mut self, source: &TelegramUser, text: &String) -> Result<(), Error> {
         let name = if let Some(ref last_name) = source.last_name {
             format!(" {} {} ", source.first_name, last_name)
@@ -167,7 +161,7 @@ impl<P: SerialPort> TelegramBot<P> {
         self.history.add_print(&source.id);
         Ok(())
     }
-
+    /// Compares the message length with the permissions.
     fn is_print_length_allowed(&self, id: UserId, len: usize) -> bool {
         if let Some(role) = SETTINGS.get_role(id) {
             len <= role.max_print_len
@@ -175,7 +169,7 @@ impl<P: SerialPort> TelegramBot<P> {
             false
         }
     }
-
+    /// Checks whether the given user id is allowed to print right now.
     fn is_printing_allowed(&self, id: UserId) -> bool {
         if let Some(role) = SETTINGS.get_role(id) {
             let min_dur = Duration::from_secs(60 * role.minutes_between_prints as u64);
@@ -188,7 +182,7 @@ impl<P: SerialPort> TelegramBot<P> {
             false
         }
     }
-
+    /// Send `text` to the user `id`.
     async fn send(&mut self, id: UserId, text: &str) -> Result<(), Error> {
         let msg = id.text(text);
         self.api.send(msg).await.map_err(Error::SendingMessage)?;
@@ -196,6 +190,7 @@ impl<P: SerialPort> TelegramBot<P> {
     }
 }
 
+/// Parse a Telegram message into a [`Command`].
 fn message_to_command(message: Message) -> Option<Command> {
     // We only care about text messages
     let kind = if let MessageKind::Text { data, .. } = message.kind {
@@ -213,6 +208,7 @@ fn message_to_command(message: Message) -> Option<Command> {
     })
 }
 
+/// Initialize the printer serial port.
 fn init_printer_port() -> impl SerialPort {
     let path = env_expect!("PRINTER_BOT_PRINTER_PATH");
     let baud_rate = env_expect!(parse: "PRINTER_BOT_PRINTER_BAUD_RATE", "9600");

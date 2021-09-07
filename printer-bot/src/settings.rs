@@ -39,6 +39,7 @@ pub struct User {
 pub struct Settings {
     pub roles: Vec<Role>,
     pub users: Vec<User>,
+    pub bot_token: String,
     #[serde(default, skip_serializing)]
     _cannot_create: PhantomData<()>,
 }
@@ -84,6 +85,7 @@ impl Settings {
                         role: String::from("admin"),
                         _cannot_create: PhantomData,
                     }],
+                    bot_token: String::from("[YOUR TELEGRAM BOT TOKEN]"),
                     _cannot_create: PhantomData,
                 };
                 let content =
