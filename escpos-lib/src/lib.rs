@@ -39,30 +39,30 @@ where
             "Emphasized".emph(),
             "Higher".higher(),
             "Wider".wider(),
-            "Underlined1".underline1(),
+            "Underlined".underline(),
             "Reversed".reverse(),
             "Small".small(),
             "Emph Higher".emph().higher(),
             "Emph Wider".emph().wider(),
-            "Emph Underlined1".emph().underline1(),
+            "Emph Underlined".emph().underline(),
             "Emph Reversed".emph().reverse(),
             "Emph Small".emph().small(),
             "Higher Wider".higher().wider(),
-            "Higher Underlined1".higher().underline1(),
+            "Higher Underlined".higher().underline(),
             "Higher Reversed".higher().reverse(),
             "Higher Small".higher().small(),
-            "Wider Underlined1".wider().underline1(),
+            "Wider Underlined".wider().underline(),
             "Wider Reversed".wider().reverse(),
             "Wider Small".wider().small(),
-            "Underlined1 Reversed".underline1().reverse(),
-            "Underlined1 Small".underline1().small(),
+            "Underlined Reversed".underline().reverse(),
+            "Underlined Small".underline().small(),
             "Reversed Small".reverse().small(),
         ];
+        self.write(header)?;
         for string in format_strings {
             self.write(&format!(" - {}\n", string))?
         }
-        self.write(header)?;
-        self.exec(EscPosCmd::PrintAndFeedLines(5))?;
+        self.exec(EscPosCmd::PrintAndFeedLines(4))?;
         self.exec(EscPosCmd::CutPaper(CutMode::Full))?;
         Ok(())
     }

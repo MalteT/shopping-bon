@@ -19,8 +19,7 @@ pub trait FmtStr<S> {
     fn emph(self) -> FormattedStr<S>;
     fn higher(self) -> FormattedStr<S>;
     fn wider(self) -> FormattedStr<S>;
-    fn underline1(self) -> FormattedStr<S>;
-    fn underline2(self) -> FormattedStr<S>;
+    fn underline(self) -> FormattedStr<S>;
     fn reverse(self) -> FormattedStr<S>;
     fn small(self) -> FormattedStr<S>;
 }
@@ -82,17 +81,9 @@ impl<'s> FmtStr<&'s str> for &'s str {
         }
     }
 
-    fn underline1(self) -> FormattedStr<&'s str> {
+    fn underline(self) -> FormattedStr<&'s str> {
         FormattedStr {
             underline: UnderlineMode::OneDot,
-            text: self,
-            ..Default::default()
-        }
-    }
-
-    fn underline2(self) -> FormattedStr<&'s str> {
-        FormattedStr {
-            underline: UnderlineMode::TwoDot,
             text: self,
             ..Default::default()
         }
@@ -137,16 +128,9 @@ impl<S> FmtStr<S> for FormattedStr<S> {
         }
     }
 
-    fn underline1(self) -> FormattedStr<S> {
+    fn underline(self) -> FormattedStr<S> {
         FormattedStr {
             underline: UnderlineMode::OneDot,
-            ..self
-        }
-    }
-
-    fn underline2(self) -> FormattedStr<S> {
-        FormattedStr {
-            underline: UnderlineMode::TwoDot,
             ..self
         }
     }

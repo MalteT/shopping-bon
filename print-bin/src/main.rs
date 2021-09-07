@@ -1,4 +1,4 @@
-use escpos_lib::{FmtStr, Printer};
+use escpos_lib::Printer;
 use serialport::{DataBits, FlowControl, Parity, StopBits};
 
 use std::time::Duration;
