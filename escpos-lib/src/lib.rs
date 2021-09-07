@@ -34,9 +34,35 @@ where
     }
 
     pub fn print_test_page(&mut self) -> IoResult<()> {
-        let text = format!("{}: This is a test!", "Malte".reverse());
-        self.write(text)?;
-        self.exec(EscPosCmd::PrintAndFeedLines(10))?;
+        let header = format!("{}\nDies ist ein Test\n", " TEST ".reverse());
+        let fmt_strings = vec![
+            "Emphasized".emph(),
+            "Higher".higher(),
+            "Wider".wider(),
+            "Underlined".underline(),
+            "Reversed".reverse(),
+            "Small".small(),
+            "Emph Higher".emph().higher(),
+            "Emph Wider".emph().wider(),
+            "Emph Underlined".emph().underline(),
+            "Emph Reversed".emph().reverse(),
+            "Emph Small".emph().small(),
+            "Higher Wider".higher().wider(),
+            "Higher Underlined".higher().underline(),
+            "Higher Reversed".higher().reverse(),
+            "Higher Small".higher().small(),
+            "Wider Underlined".wider().underline(),
+            "Wider Reversed".wider().reverse(),
+            "Wider Small".wider().small(),
+            "Underlined Reversed".underline().reverse(),
+            "Underlined Small".underline().small(),
+            "Reversed Small".reverse().small(),
+        ].drain(..).fold(String::new(), |list, fmt_str| {
+            list + &format!(" - {}", fmt_str)
+        });
+        self.write(header)?;
+        self.write(fmt_strings)?;
+        self.exec(EscPosCmd::PrintAndFeedLines(5))?;
         self.exec(EscPosCmd::CutPaper(CutMode::Full))?;
         Ok(())
     }
