@@ -170,9 +170,9 @@ impl<P: SerialPort> TelegramBot<P> {
 
     fn is_printing_allowed(&self, id: UserId) -> bool {
         if let Some(role) = SETTINGS.get_role(id) {
-            let expected_dur = Duration::from_secs(60 * role.minutes_between_prints as u64);
-            if let Some(real_dur) = self.history.duration_since_last_print(&id) {
-                expected_dur > real_dur
+            let min_dur = Duration::from_secs(60 * role.minutes_between_prints as u64);
+            if let Some(curr_dur) = self.history.duration_since_last_print(&id) {
+                min_dur <= curr_dur
             } else {
                 true
             }
