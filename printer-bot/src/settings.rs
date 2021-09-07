@@ -39,7 +39,16 @@ pub struct User {
 pub struct Settings {
     pub roles: Vec<Role>,
     pub users: Vec<User>,
+    pub printer: Printer,
     pub bot_token: String,
+    #[serde(default, skip_serializing)]
+    _cannot_create: PhantomData<()>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Printer {
+    pub path: String,
+    pub baud_rate: u32,
     #[serde(default, skip_serializing)]
     _cannot_create: PhantomData<()>,
 }
@@ -85,6 +94,11 @@ impl Settings {
                         role: String::from("admin"),
                         _cannot_create: PhantomData,
                     }],
+                    printer: Printer {
+                        path: String::from("/dev/null"),
+                        baud_rate: 9600,
+                        _cannot_create: PhantomData,
+                    },
                     bot_token: String::from("[YOUR TELEGRAM BOT TOKEN]"),
                     _cannot_create: PhantomData,
                 };

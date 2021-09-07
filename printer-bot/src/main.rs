@@ -9,7 +9,6 @@ use tracing::{info, warn};
 
 use std::{
     collections::HashMap,
-    env,
     time::{Duration, Instant},
 };
 
@@ -18,27 +17,6 @@ mod settings;
 
 pub use error::Error;
 pub use settings::SETTINGS;
-
-macro_rules! env_expect {
-    ($env:literal) => {
-        env::var($env).expect(stringify!($env not set))
-    };
-    ($env:literal, $default:literal) => {
-        env::var($env).unwrap_or($default.into())
-    };
-    (parse: $env:literal) => {
-        env::var($env)
-            .expect(stringify!($env not set))
-            .parse()
-            .expect(stringify!($env contains invalid data))
-    };
-    (parse: $env:literal, $default:literal) => {
-        env::var($env)
-            .unwrap_or($default.into())
-            .parse()
-            .expect(stringify!($env contains invalid data))
-    }
-}
 
 /// All relevant state.
 pub struct TelegramBot<P: SerialPort> {
@@ -49,21 +27,16 @@ pub struct TelegramBot<P: SerialPort> {
 }
 
 /// History of executed command.
+#[derive(Debug, Default)]
 pub struct History {
     /// Instances the corresponding users last printed something.
     last_print: HashMap<UserId, Instant>,
 }
 
 impl History {
-    /// Initialize an empty history.
-    pub fn new() -> Self {
-        History {
-            last_print: HashMap::new(),
-        }
-    }
     /// Get the time passed since the given user last printed something.
     pub fn duration_since_last_print(&self, id: &UserId) -> Option<Duration> {
-        self.last_print.get(&id).map(|instant| instant.elapsed())
+        self.last_print.get(id).map(|instant| instant.elapsed())
     }
     /// Update the last time the given user printed something.
     pub fn add_print(&mut self, id: &UserId) {
@@ -97,7 +70,7 @@ impl<P: SerialPort> TelegramBot<P> {
         let api = Api::new(token);
         let stream = api.stream();
         let printer = Printer::new(port).expect("Failed to initialize printer");
-        let history = History::new();
+        let history = History::default();
         TelegramBot {
             api,
             stream,
@@ -127,7 +100,7 @@ impl<P: SerialPort> TelegramBot<P> {
     /// Handle the print command.
     ///
     /// Prints the data and sends feedback to the user who issued it.
-    async fn handle_print_cmd(&mut self, source: &TelegramUser, text: &String) -> Result<(), Error> {
+    async fn handle_print_cmd(&mut self, source: &TelegramUser, text: &str) -> Result<(), Error> {
         if self.is_printing_allowed(source.id) {
             if self.is_print_length_allowed(source.id, text.len()) {
                 self.print_message(source, text)?;
@@ -136,7 +109,10 @@ impl<P: SerialPort> TelegramBot<P> {
             } else {
                 self.send(source.id, "🖨️❌ That message is too long!")
                     .await?;
-                info!("Rejected print command for long message from id: {}", source.id);
+                info!(
+                    "Rejected print command for long message from id: {}",
+                    source.id
+                );
                 Ok(())
             }
         } else {
@@ -148,7 +124,7 @@ impl<P: SerialPort> TelegramBot<P> {
     /// Print the given Message.
     ///
     /// Adjusts the history aswell.
-    fn print_message(&mut self, source: &TelegramUser, text: &String) -> Result<(), Error> {
+    fn print_message(&mut self, source: &TelegramUser, text: &str) -> Result<(), Error> {
         let name = if let Some(ref last_name) = source.last_name {
             format!(" {} {} ", source.first_name, last_name)
         } else {
@@ -210,9 +186,7 @@ fn message_to_command(message: Message) -> Option<Command> {
 
 /// Initialize the printer serial port.
 fn init_printer_port() -> impl SerialPort {
-    let path = env_expect!("PRINTER_BOT_PRINTER_PATH");
-    let baud_rate = env_expect!(parse: "PRINTER_BOT_PRINTER_BAUD_RATE", "9600");
-    serialport::new(path, baud_rate)
+    serialport::new(&SETTINGS.printer.path, SETTINGS.printer.baud_rate)
         .timeout(Duration::from_secs(10))
         .open_native()
         .expect("Init serial failed")

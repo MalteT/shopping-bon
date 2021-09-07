@@ -62,7 +62,7 @@ pub enum CharCodeTable {
 }
 
 pub struct PaperSensorMode {
-    TODO: u8,
+    _todo: u8,
 }
 
 pub enum Justification {

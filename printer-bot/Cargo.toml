@@ -17,7 +17,6 @@ escpos-lib = { path = "../escpos-lib" }
 serialport = "4.0.1"
 toml = "0.5.8"
 thiserror = "1.0"
-chrono = "0.4.19"
 
 [dependencies.telegram-bot]
 git = "https://github.com/telegram-rs/telegram-bot"
