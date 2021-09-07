@@ -5,8 +5,8 @@ type Item = String;
 pub type Items = Vec<Item>;
 pub type Categories = Vec<Category>;
 
-const ITEM_DB_PATH: &str = "data/items.ron";
-const CATEGORY_DB_PATH: &str = "data/categories.ron";
+const ITEM_DB_PATH: &str = "shopping-bon-bot/data/items.ron";
+const CATEGORY_DB_PATH: &str = "shopping-bon-bot/data/categories.ron";
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Category {
