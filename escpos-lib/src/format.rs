@@ -1,5 +1,7 @@
 use std::fmt;
 
+use crate::cmds::UnderlineMode;
+
 use super::{cmds::PrintMode, EscPosCmd};
 
 /// String with applied formatting.
@@ -10,13 +12,15 @@ pub struct FormattedStr<S> {
     reverse_color: bool,
     text: S,
     bold: bool,
+    underline: UnderlineMode,
 }
 
 pub trait FmtStr<S> {
     fn emph(self) -> FormattedStr<S>;
     fn higher(self) -> FormattedStr<S>;
     fn wider(self) -> FormattedStr<S>;
-    fn underline(self) -> FormattedStr<S>;
+    fn underline1(self) -> FormattedStr<S>;
+    fn underline2(self) -> FormattedStr<S>;
     fn reverse(self) -> FormattedStr<S>;
     fn small(self) -> FormattedStr<S>;
 }
@@ -35,11 +39,19 @@ impl<S: fmt::Display> fmt::Display for FormattedStr<S> {
         }
         write!(
             f,
-            "{}{}{}{}{}",
+            "{}{}{}{}{}{}{}",
             maybe_print!(self.reverse_color, SelectReversePrinting(true)),
+            maybe_print!(
+                self.underline != UnderlineMode::Off,
+                SelectUnderlineMode(self.underline)
+            ),
             SelectPrintMode(self.mode),
             self.text,
             SelectPrintMode(PrintMode::empty()),
+            maybe_print!(
+                self.underline != UnderlineMode::Off,
+                SelectUnderlineMode(UnderlineMode::Off)
+            ),
             maybe_print!(self.reverse_color, SelectReversePrinting(false)),
         )
     }
@@ -70,9 +82,17 @@ impl<'s> FmtStr<&'s str> for &'s str {
         }
     }
 
-    fn underline(self) -> FormattedStr<&'s str> {
+    fn underline1(self) -> FormattedStr<&'s str> {
         FormattedStr {
-            mode: PrintMode::UNDERLINE,
+            underline: UnderlineMode::OneDot,
+            text: self,
+            ..Default::default()
+        }
+    }
+
+    fn underline2(self) -> FormattedStr<&'s str> {
+        FormattedStr {
+            underline: UnderlineMode::TwoDot,
             text: self,
             ..Default::default()
         }
@@ -117,9 +137,16 @@ impl<S> FmtStr<S> for FormattedStr<S> {
         }
     }
 
-    fn underline(self) -> FormattedStr<S> {
+    fn underline1(self) -> FormattedStr<S> {
         FormattedStr {
-            mode: self.mode | PrintMode::UNDERLINE,
+            underline: UnderlineMode::OneDot,
+            ..self
+        }
+    }
+
+    fn underline2(self) -> FormattedStr<S> {
+        FormattedStr {
+            underline: UnderlineMode::TwoDot,
             ..self
         }
     }

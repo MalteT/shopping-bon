@@ -6,7 +6,7 @@ mod cmds;
 mod format;
 
 use cmds::{CutMode, EscPosCmd};
-pub use format::{FormattedStr, FmtStr};
+pub use format::{FmtStr, FormattedStr};
 
 /// Special characters
 mod chars {
@@ -39,23 +39,23 @@ where
             "Emphasized".emph(),
             "Higher".higher(),
             "Wider".wider(),
-            "Underlined".underline(),
+            "Underlined1".underline1(),
             "Reversed".reverse(),
             "Small".small(),
             "Emph Higher".emph().higher(),
             "Emph Wider".emph().wider(),
-            "Emph Underlined".emph().underline(),
+            "Emph Underlined1".emph().underline1(),
             "Emph Reversed".emph().reverse(),
             "Emph Small".emph().small(),
             "Higher Wider".higher().wider(),
-            "Higher Underlined".higher().underline(),
+            "Higher Underlined1".higher().underline1(),
             "Higher Reversed".higher().reverse(),
             "Higher Small".higher().small(),
-            "Wider Underlined".wider().underline(),
+            "Wider Underlined1".wider().underline1(),
             "Wider Reversed".wider().reverse(),
             "Wider Small".wider().small(),
-            "Underlined Reversed".underline().reverse(),
-            "Underlined Small".underline().small(),
+            "Underlined1 Reversed".underline1().reverse(),
+            "Underlined1 Small".underline1().small(),
             "Reversed Small".reverse().small(),
         ];
         for string in format_strings {

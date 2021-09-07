@@ -77,6 +77,7 @@ pub enum Font {
     C, // TODO: Does this work with tm88iii?
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnderlineMode {
     Off,
     OneDot,
@@ -96,6 +97,12 @@ bitflags! {
 impl Default for PrintMode {
     fn default() -> Self {
         Self::empty()
+    }
+}
+
+impl Default for UnderlineMode {
+    fn default() -> Self {
+        UnderlineMode::Off
     }
 }
 
