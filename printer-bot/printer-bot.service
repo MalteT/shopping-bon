@@ -1,0 +1,11 @@
+[Install]
+WantedBy=default.target
+
+[Service]
+ExecStart=printer-bot
+Restart=on-failure
+RestartSec=3
+
+[Unit]
+After=network.target
+Description=Telegram Bot printing all received messages
