@@ -116,7 +116,14 @@ impl Settings {
                 };
                 let content =
                     toml::to_string_pretty(&settings).expect("BUG: Invalid default config");
-                let mut file = File::create(&*SETTINGS_PATH).map_err(Error::CreatingSettingsFile)?;
+                fs::create_dir_all(
+                    SETTINGS_PATH
+                        .parent()
+                        .expect("BUG: SETTINGS_PATH has no parent"),
+                )
+                .map_err(Error::CreatingSettingsFile)?;
+                let mut file =
+                    File::create(&*SETTINGS_PATH).map_err(Error::CreatingSettingsFile)?;
                 write!(file, "{}", content).map_err(Error::CreatingSettingsFile)?;
                 Ok(settings)
             }
