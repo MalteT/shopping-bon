@@ -62,6 +62,22 @@ where
         for string in format_strings {
             self.write(&format!(" - {}\n", string))?
         }
+        self.write(&format!("\n{}\n", "CHARS".wider()))?;
+        let numbers = "0123456789";
+        let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let german = "äöüß";
+        for c in numbers.chars() {
+            self.write(&format!(" {}", c))?;
+        }
+        self.write("\n")?;
+        for c in chars.chars() {
+            self.write(&format!(" {}", c))?;
+        }
+        self.write("\n")?;
+        for c in german.chars() {
+            self.write(&format!(" {}", c))?;
+        }
+        self.write("\n")?;
         self.exec(EscPosCmd::PrintAndFeedLines(4))?;
         self.exec(EscPosCmd::CutPaper(CutMode::Full))?;
         Ok(())

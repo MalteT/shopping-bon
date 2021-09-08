@@ -130,7 +130,9 @@ impl<P: SerialPort> TelegramBot<P> {
         } else {
             format!(" {} ", source.first_name)
         };
-        let formatted = format!("{}: {}\n", name.reverse(), escpos_lib::escape(text));
+        let text = any_ascii::any_ascii(text);
+        let text = escpos_lib::escape(&text);
+        let formatted = format!("{}: {}\n", name.reverse(), text);
         self.printer
             .write_and_cut(formatted)
             .map_err(Error::Printing)?;
