@@ -7,15 +7,17 @@ use std::{
     fs::{self, File},
     io::Write,
     marker::PhantomData,
+    path::PathBuf,
 };
 
 use super::Error;
 
-const SETTINGS_PATH: &str = "./settings.toml";
-
 lazy_static! {
     pub static ref SETTINGS: Settings =
         Settings::load_or_create_default().expect("Failed to open settings");
+    static ref SETTINGS_PATH: PathBuf = dirs::config_dir()
+        .expect("Could not determine config path. Adjust XDG_CONFIG_DIR.")
+        .join("printer-bot/settings.toml");
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -76,7 +78,7 @@ impl Settings {
     }
 
     fn load_or_create_default() -> Result<Self, Error> {
-        match fs::read_to_string(SETTINGS_PATH).map_err(Error::OpeningSettingsFile) {
+        match fs::read_to_string(&*SETTINGS_PATH).map_err(Error::OpeningSettingsFile) {
             Ok(content) => toml::from_str(&content).map_err(Error::ParsingSettingsFile),
             Err(why) => {
                 warn!("{}", why);
@@ -114,7 +116,7 @@ impl Settings {
                 };
                 let content =
                     toml::to_string_pretty(&settings).expect("BUG: Invalid default config");
-                let mut file = File::create(SETTINGS_PATH).map_err(Error::CreatingSettingsFile)?;
+                let mut file = File::create(&*SETTINGS_PATH).map_err(Error::CreatingSettingsFile)?;
                 write!(file, "{}", content).map_err(Error::CreatingSettingsFile)?;
                 Ok(settings)
             }

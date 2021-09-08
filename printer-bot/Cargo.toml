@@ -18,6 +18,7 @@ serialport = "4.0.1"
 toml = "0.5.8"
 thiserror = "1.0"
 any_ascii = "0.3.0"
+dirs = "3.0.2"
 
 [dependencies.telegram-bot]
 git = "https://github.com/telegram-rs/telegram-bot"
