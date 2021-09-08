@@ -121,6 +121,12 @@ impl<P: SerialPort> TelegramBot<P> {
             Ok(())
         }
     }
+    /// Print a simple startup message to announce that the bot is running
+    pub fn print_startup_message(&mut self) -> Result<(), Error> {
+        self.printer
+            .write_and_cut("*** Printer-bot started ***\n")
+            .map_err(Error::Printing)
+    }
     /// Print the given Message.
     ///
     /// Adjusts the history aswell.
@@ -195,7 +201,7 @@ fn init_printer_port() -> impl SerialPort {
 }
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), telegram_bot::Error> {
+async fn main() -> Result<(), Error> {
     // Read environment
     dotenv::dotenv().ok();
     // Initializer logger
@@ -204,6 +210,7 @@ async fn main() -> Result<(), telegram_bot::Error> {
     let port = init_printer_port();
     let mut bot = TelegramBot::init(port);
     info!("Started!");
+    bot.print_startup_message()?;
     // Start polling messages from telegram
     loop {
         match bot.poll().await {
