@@ -82,7 +82,7 @@ impl Settings {
             Ok(content) => toml::from_str(&content).map_err(Error::ParsingSettingsFile),
             Err(why) => {
                 warn!("{}", why);
-                info!("creating default settings");
+                info!("creating default settings at '{:?}'", *SETTINGS_PATH);
                 let settings = Settings {
                     roles: vec![
                         Role {
