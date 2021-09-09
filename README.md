@@ -1,7 +1,7 @@
 # Thermal Printer Shenanigans
 
 This workspace contains all software related to the upcycling of my Epson TM-T88III.
-The (*still undocumented*) hardware extension feature the [Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/)
+The (*still undocumented*) hardware extensions feature the [Pi Zero W](https://www.raspberrypi.org/products/raspberry-pi-zero-w/)
 which interfaces with the printer's [RS232](https://en.wikipedia.org/wiki/RS-232) using the [MAX232](https://en.wikipedia.org/wiki/MAX232).
 I had no issues supplying the Pi and the MAX232 + capacitors with enough current using a step-down converter on the printer-native 24V supply.
 The TM-T88III is spacious enough to easily fit all components inside the enclosure, leaving a slick albeit very ugly view!
